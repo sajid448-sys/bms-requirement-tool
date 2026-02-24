@@ -1,0 +1,7 @@
+# Keep image small; Dockerfile only COPYs requirements.txt + bms_calculator.py, server.py, index.html
+__pycache__
+*.pyc
+.git
+snippets_out
+.env
+*.md

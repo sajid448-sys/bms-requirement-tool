@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BMS Requirement Calculator</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --border: #2d3a4d;
+      --text: #e6edf3;
+      --muted: #8b9cb3;
+      --accent: #58a6ff;
+      --green: #3fb950;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 1.5rem;
+      min-height: 100vh;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin: 0 0 0.5rem;
+      color: var(--text);
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .grid {
+      display: grid;
+      gap: 1rem;
+      width: 100%;
+      max-width: none;
+    }
+    @media (min-width: 720px) {
+      .grid { grid-template-columns: 1fr 1fr 1fr; }
+    }
+    @media (max-width: 719px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .card h2 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin: 0 0 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .form-group { margin-bottom: 0.75rem; }
+    .form-group:last-child { margin-bottom: 0; }
+    label {
+      display: block;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      margin-bottom: 0.35rem;
+      color: var(--muted);
+    }
+    input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      font-size: 1.0625rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    input::placeholder { color: var(--muted); }
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      min-width: 0;
+    }
+    .result-card h2 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin: 0 0 0.25rem;
+      color: var(--text);
+      text-transform: none;
+      letter-spacing: normal;
+    }
+    .result-card .desc { font-size: 0.875rem; color: var(--muted); margin-bottom: 0.75rem; }
+    .result-card dl { margin: 0; font-size: 1rem; }
+    .result-card dt { color: var(--muted); font-weight: 500; margin-top: 0.6rem; font-size: 0.9375rem; }
+    .result-card dt:first-of-type { margin-top: 0; }
+    .result-card dd { margin: 0.2rem 0 0; font-variant-numeric: tabular-nums; font-size: 1.0625rem; }
+    .result-card .soc { color: var(--green); }
+    .hint { font-size: 0.875rem; color: var(--muted); margin-top: 0.25rem; }
+    .invalid input { border-color: #f85149; }
+    .invalid .hint { color: #f85149; }
+
+    .snippets-section { margin-top: 2rem; grid-column: 1 / -1; }
+    .snippets-section .card { padding: 1.25rem; }
+    .snippet-blocks {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+    .snippet-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 0;
+      min-width: 0;
+    }
+    .snippet-block h3 { font-size: 1.125rem; margin: 0 0 0.5rem; }
+    .snippet-block .meta { font-size: 0.875rem; color: var(--muted); margin-bottom: 0.75rem; }
+    .snippet-tabs { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .snippet-tabs button {
+      padding: 0.4rem 0.85rem;
+      font-size: 0.9375rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .snippet-tabs button.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+    .snippet-tabs button:hover:not(.active) { border-color: var(--muted); color: var(--text); }
+    .snippet-content {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      font-family: ui-monospace, monospace;
+      font-size: 0.9375rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 220px;
+      overflow: auto;
+    }
+    .snippet-actions { margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .snippet-actions button {
+      padding: 0.45rem 0.85rem;
+      font-size: 0.9375rem;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .snippet-actions button:hover { opacity: 0.9; }
+    .snippet-actions button.secondary {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .advanced-section { margin-top: 2rem; grid-column: 1 / -1; }
+    .advanced-toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0;
+      cursor: pointer;
+      user-select: none;
+    }
+    .advanced-toggle-wrap input[type="checkbox"] { width: auto; cursor: pointer; accent-color: var(--accent); }
+    .advanced-toggle-wrap span { font-size: 1rem; font-weight: 600; color: var(--text); }
+    .advanced-panel {
+      display: none;
+      margin-top: 1rem;
+      padding: 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .advanced-panel.open { display: block; }
+    .advanced-panel h3 { font-size: 1rem; margin: 1rem 0 0.5rem; color: var(--accent); }
+    .advanced-panel h3:first-child { margin-top: 0; }
+    .advanced-panel .subgrid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-top: 0.5rem; }
+    .advanced-panel dl { margin: 0.5rem 0 0; font-size: 0.9375rem; }
+    .advanced-panel dt { color: var(--muted); margin-top: 0.4rem; }
+    .advanced-panel dd { margin: 0.1rem 0 0; font-variant-numeric: tabular-nums; }
+    .advanced-panel .req-id { color: var(--green); font-family: ui-monospace, monospace; }
+    .advanced-panel dd.error { color: #c00; }
+  </style>
+</head>
+<body>
+  <h1>BMS Requirement Calculator</h1>
+  <p class="subtitle">Orbital period, eclipse duration, payload power, nominal voltage → usable capacity, C-rate, SOC window. Outputs Markdown/JSON snippets per case.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Inputs</h2>
+      <form id="form">
+        <div class="form-group">
+          <label for="period">Orbital period (min)</label>
+          <input type="number" id="period" name="period" min="0" step="0.1" placeholder="e.g. 90" value="90">
+          <div class="hint">Orbit duration</div>
+        </div>
+        <div class="form-group">
+          <label for="eclipse">Eclipse duration (min)</label>
+          <input type="number" id="eclipse" name="eclipse" min="0" step="0.1" placeholder="e.g. 35" value="35">
+          <div class="hint">Sun-out time per orbit</div>
+        </div>
+        <div class="form-group">
+          <label for="power">Average payload power (W)</label>
+          <input type="number" id="power" name="power" min="0" step="1" placeholder="e.g. 200" value="200">
+          <div class="hint">Load during eclipse</div>
+        </div>
+        <div class="form-group">
+          <label for="voltage">Nominal battery voltage (V)</label>
+          <input type="number" id="voltage" name="voltage" min="0.1" step="0.1" placeholder="e.g. 28" value="28">
+          <div class="hint">Bus / pack voltage</div>
+        </div>
+      </form>
+    </div>
+
+    <div class="result-card" id="short-result">
+      <h2>Short-lived high-power</h2>
+      <p class="desc">e.g. LEO, higher DOD acceptable</p>
+      <dl id="short-dl"><dd>Enter values and results appear here.</dd></dl>
+    </div>
+    <div class="result-card" id="long-result">
+      <h2>Long-lived low-power</h2>
+      <p class="desc">e.g. GEO, conservative for life</p>
+      <dl id="long-dl"><dd>Enter values and results appear here.</dd></dl>
+    </div>
+
+    <div class="card snippets-section">
+      <h2>BMS requirement snippets (save locally)</h2>
+      <p class="subtitle" style="margin-bottom: 1rem;">Markdown or JSON snippet per case. Use the buttons to download to your machine.</p>
+
+      <div class="snippet-blocks">
+      <div class="snippet-block" id="short-snippet">
+        <h3>Short-lived high-power</h3>
+        <p class="meta">short_lived_high_power — e.g. LEO, higher DOD acceptable</p>
+        <div class="snippet-tabs">
+          <button type="button" class="active" data-case="short" data-format="md">Markdown</button>
+          <button type="button" data-case="short" data-format="json">JSON</button>
+        </div>
+        <pre class="snippet-content" id="short-snippet-body">Enter valid inputs above.</pre>
+        <div class="snippet-actions">
+          <button type="button" data-case="short" data-format="md">Download .md</button>
+          <button type="button" data-case="short" data-format="json">Download .json</button>
+        </div>
+      </div>
+
+      <div class="snippet-block" id="long-snippet">
+        <h3>Long-lived low-power</h3>
+        <p class="meta">long_lived_low_power — e.g. GEO, conservative for life</p>
+        <div class="snippet-tabs">
+          <button type="button" class="active" data-case="long" data-format="md">Markdown</button>
+          <button type="button" data-case="long" data-format="json">JSON</button>
+        </div>
+        <pre class="snippet-content" id="long-snippet-body">Enter valid inputs above.</pre>
+        <div class="snippet-actions">
+          <button type="button" data-case="long" data-format="md">Download .md</button>
+          <button type="button" data-case="long" data-format="json">Download .json</button>
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <div class="card advanced-section">
+      <label class="advanced-toggle-wrap">
+        <input type="checkbox" id="advanced-toggle" autocomplete="off">
+        <span>Advanced</span>
+      </label>
+      <div class="advanced-panel" id="advanced-panel">
+        <h3>More sizing terms</h3>
+        <p class="hint">Internal pack losses (I²R), cell voltage divergence, redundancy (N+1), ageing &amp; temperature derating, anomaly/SAFE energy. Single sizing summary for traceability.</p>
+        <div class="subgrid">
+          <div class="form-group">
+            <label for="adv-pack-loss-pct">Pack loss (%)</label>
+            <input type="number" id="adv-pack-loss-pct" min="0" max="20" step="0.5" value="2" placeholder="I²R">
+          </div>
+          <div class="form-group">
+            <label for="adv-divergence-pct">Cell divergence (%)</label>
+            <input type="number" id="adv-divergence-pct" min="0" max="15" step="0.5" value="3">
+          </div>
+          <div class="form-group">
+            <label for="adv-redundancy">Redundancy (N+1)</label>
+            <input type="number" id="adv-redundancy" min="0" max="2" step="1" value="1">
+          </div>
+          <div class="form-group">
+            <label for="adv-ageing-pct">Ageing derate (%)</label>
+            <input type="number" id="adv-ageing-pct" min="0" max="30" step="1" value="10">
+          </div>
+          <div class="form-group">
+            <label for="adv-temp-pct">Temp derate (%)</label>
+            <input type="number" id="adv-temp-pct" min="0" max="20" step="0.5" value="5">
+          </div>
+          <div class="form-group">
+            <label for="adv-anomaly-wh">Anomaly/SAFE energy (Wh)</label>
+            <input type="number" id="adv-anomaly-wh" min="0" step="1" value="20">
+          </div>
+        </div>
+        <dl id="sizing-summary-dl"><dd>Enter main inputs and turn Advanced on.</dd></dl>
+
+        <h3>Cell / battery level</h3>
+        <p class="hint">Cell capacity (Ah), series/parallel count, end-of-life factor → cell count, string config, max charge/discharge current, C-rate limits.</p>
+        <div class="subgrid">
+          <div class="form-group">
+            <label for="adv-cell-ah">Cell capacity (Ah)</label>
+            <input type="number" id="adv-cell-ah" min="0.1" step="0.1" value="5">
+          </div>
+          <div class="form-group">
+            <label for="adv-series">Series cells</label>
+            <input type="number" id="adv-series" min="1" step="1" value="8">
+          </div>
+          <div class="form-group">
+            <label for="adv-parallel">Parallel cells</label>
+            <input type="number" id="adv-parallel" min="1" step="1" value="1">
+          </div>
+          <div class="form-group">
+            <label for="adv-eol-factor">EOL capacity factor (0–1)</label>
+            <input type="number" id="adv-eol-factor" min="0.5" max="1" step="0.05" value="0.8">
+          </div>
+        </div>
+        <dl id="cell-level-dl"><dd>—</dd></dl>
+
+        <h3>Charge / discharge limits</h3>
+        <p class="hint">From C-rate and capacity: max charge/discharge current, EOCV, EODV, taper/step parameters. Named requirements (REQ-BMS-xxx).</p>
+        <div class="subgrid">
+          <div class="form-group">
+            <label for="adv-eocv-cell">EOCV per cell (V)</label>
+            <input type="number" id="adv-eocv-cell" min="3.9" max="4.3" step="0.05" value="4.2">
+          </div>
+          <div class="form-group">
+            <label for="adv-eodv-cell">EODV per cell (V)</label>
+            <input type="number" id="adv-eodv-cell" min="2.5" max="3.2" step="0.05" value="3.0">
+          </div>
+          <div class="form-group">
+            <label for="adv-c-rate-charge">Max charge C-rate</label>
+            <input type="number" id="adv-c-rate-charge" min="0.1" max="2" step="0.1" value="0.5">
+          </div>
+          <div class="form-group">
+            <label for="adv-c-rate-discharge">Max discharge C-rate</label>
+            <input type="number" id="adv-c-rate-discharge" min="0.5" max="3" step="0.1" value="2">
+          </div>
+        </div>
+        <dl id="charge-discharge-dl"><dd>—</dd></dl>
+        <div id="named-requirements" class="snippet-content" style="max-height: 280px; margin-top: 0.5rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SHORT = {
+      name: 'short_lived_high_power',
+      description: 'Short-lived, high-power (e.g. LEO, high DOD acceptable)',
+      capacity_margin: 1.10,
+      soc_min: 0.20,
+      soc_max: 1.00,
+      reserve_fraction: 0.10
+    };
+    const LONG = {
+      name: 'long_lived_low_power',
+      description: 'Long-lived, low-power (e.g. GEO, conservative for life)',
+      capacity_margin: 1.20,
+      soc_min: 0.30,
+      soc_max: 0.90,
+      reserve_fraction: 0.25
+    };
+
+    function energyWh(P_W, t_eclipse_min) {
+      return P_W * (t_eclipse_min / 60);
+    }
+    function capacityWh(E_eclipse_Wh, margin) {
+      return E_eclipse_Wh * margin;
+    }
+    function capacityAh(C_Wh, V_nom) {
+      return V_nom > 0 ? C_Wh / V_nom : 0;
+    }
+    function cRate(P_W, V_nom, C_Ah) {
+      if (C_Ah <= 0 || V_nom <= 0) return 0;
+      return (P_W / V_nom) / C_Ah;
+    }
+
+    function buildSnippetData(inp, config) {
+      const E = energyWh(inp.power, inp.eclipse);
+      const C_Wh = capacityWh(E, config.capacity_margin);
+      const C_Ah = capacityAh(C_Wh, inp.voltage);
+      const rate = cRate(inp.power, inp.voltage, C_Ah);
+      return {
+        case_name: config.name,
+        case_description: config.description,
+        inputs: {
+          orbital_period_min: inp.period,
+          eclipse_duration_min: inp.eclipse,
+          average_payload_power_W: inp.power,
+          nominal_battery_voltage_V: inp.voltage
+        },
+        eclipse_energy_Wh: Math.round(E * 100) / 100,
+        required_usable_capacity_Wh: Math.round(C_Wh * 100) / 100,
+        required_usable_capacity_Ah: Math.round(C_Ah * 100) / 100,
+        average_c_rate_during_eclipse: Math.round(rate * 1000) / 1000,
+        soc_operating_window: {
+          min: config.soc_min,
+          max: config.soc_max,
+          min_end_of_eclipse: config.soc_min
+        },
+        margin_and_reserve: {
+          capacity_margin: config.capacity_margin,
+          reserve_fraction: config.reserve_fraction
+        }
+      };
+    }
+
+    function snippetToMarkdown(data) {
+      const sw = data.soc_operating_window;
+      return [
+        `## BMS requirement snippet: ${data.case_name}`,
+        '',
+        `*${data.case_description}*`,
+        '',
+        '### Inputs',
+        `- Orbital period: ${data.inputs.orbital_period_min} min`,
+        `- Eclipse duration: ${data.inputs.eclipse_duration_min} min`,
+        `- Average payload power: ${data.inputs.average_payload_power_W} W`,
+        `- Nominal battery voltage: ${data.inputs.nominal_battery_voltage_V} V`,
+        '',
+        '### Derived requirements',
+        `- **Required usable capacity:** ${data.required_usable_capacity_Wh} Wh (${data.required_usable_capacity_Ah} Ah)`,
+        `- **Average C-rate during eclipse:** ${data.average_c_rate_during_eclipse} C`,
+        `- **SOC operating window:** ${(sw.min * 100).toFixed(0)}% (min, EOE) to ${(sw.max * 100).toFixed(0)}% (max, EOC)`,
+        `- **Eclipse energy:** ${data.eclipse_energy_Wh} Wh`,
+        '',
+        '### Margin / reserve',
+        `- Capacity margin: ${data.margin_and_reserve.capacity_margin}`,
+        `- Reserve fraction: ${data.margin_and_reserve.reserve_fraction}`
+      ].join('\n');
+    }
+
+    function buildResult(inp, config) {
+      const data = buildSnippetData(inp, config);
+      return {
+        eclipse_energy_Wh: data.eclipse_energy_Wh,
+        required_usable_capacity_Wh: data.required_usable_capacity_Wh,
+        required_usable_capacity_Ah: data.required_usable_capacity_Ah,
+        average_c_rate_during_eclipse: data.average_c_rate_during_eclipse,
+        soc_min: config.soc_min,
+        soc_max: config.soc_max,
+        snippetJson: JSON.stringify(data, null, 2),
+        snippetMd: snippetToMarkdown(data)
+      };
+    }
+
+    function renderResult(elId, data) {
+      const dl = document.getElementById(elId);
+      if (!data) {
+        dl.innerHTML = '<dd>Enter valid numbers above.</dd>';
+        return;
+      }
+      dl.innerHTML = `
+        <dt>Required usable capacity</dt><dd><strong>${data.required_usable_capacity_Wh} Wh</strong> (${data.required_usable_capacity_Ah} Ah)</dd>
+        <dt>Average C-rate during eclipse</dt><dd>${data.average_c_rate_during_eclipse} C</dd>
+        <dt class="soc">Recommended SOC operating window</dt><dd class="soc">${(data.soc_min * 100).toFixed(0)}% (min EOE) – ${(data.soc_max * 100).toFixed(0)}% (max EOC)</dd>
+      `;
+    }
+
+    function downloadFile(filename, mime, content) {
+      const blob = new Blob([content], { type: mime });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    let state = { short: null, long: null };
+   
+    const API_BASE = (typeof location !== 'undefined' && location.protocol === 'http:' && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) ? location.origin : '';
+
+    function apiResponseToState(apiObj) {
+      if (!apiObj) return null;
+      const { snippet_md, soc_operating_window } = apiObj;
+      const copy = { ...apiObj };
+      delete copy.snippet_md;
+      return {
+        eclipse_energy_Wh: apiObj.eclipse_energy_Wh,
+        required_usable_capacity_Wh: apiObj.required_usable_capacity_Wh,
+        required_usable_capacity_Ah: apiObj.required_usable_capacity_Ah,
+        average_c_rate_during_eclipse: apiObj.average_c_rate_during_eclipse,
+        soc_min: soc_operating_window ? soc_operating_window.min : apiObj.soc_operating_window?.min,
+        soc_max: soc_operating_window ? soc_operating_window.max : apiObj.soc_operating_window?.max,
+        snippetJson: JSON.stringify(copy, null, 2),
+        snippetMd: snippet_md || ''
+      };
+    }
+
+    function applyStateAndRender() {
+      renderResult('short-dl', state.short);
+      renderResult('long-dl', state.long);
+      const shortTab = document.getElementById('short-snippet').querySelector('.snippet-tabs button.active');
+      const longTab = document.getElementById('long-snippet').querySelector('.snippet-tabs button.active');
+      const shortFormat = shortTab ? shortTab.dataset.format : 'md';
+      const longFormat = longTab ? longTab.dataset.format : 'md';
+      document.getElementById('short-snippet-body').textContent = state.short ? (shortFormat === 'json' ? state.short.snippetJson : state.short.snippetMd) : 'Enter valid inputs above.';
+      document.getElementById('long-snippet-body').textContent = state.long ? (longFormat === 'json' ? state.long.snippetJson : state.long.snippetMd) : 'Enter valid inputs above.';
+    }
+
+    function update() {
+      const period = parseFloat(document.getElementById('period').value);
+      const eclipse = parseFloat(document.getElementById('eclipse').value);
+      const power = parseFloat(document.getElementById('power').value);
+      const voltage = parseFloat(document.getElementById('voltage').value);
+
+      const valid = [period, eclipse, power, voltage].every(n => !isNaN(n) && n > 0) && voltage > 0;
+      document.getElementById('form').classList.toggle('invalid', !valid);
+
+      if (!valid) {
+        renderResult('short-dl', null);
+        renderResult('long-dl', null);
+        document.getElementById('short-snippet-body').textContent = 'Enter valid inputs above.';
+        document.getElementById('long-snippet-body').textContent = 'Enter valid inputs above.';
+        state = { short: null, long: null };
+        return;
+      }
+
+      const inp = { period, eclipse, power, voltage };
+
+      if (API_BASE) {
+        fetch(API_BASE + '/api/calculate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ period, eclipse, power, voltage })
+        })
+          .then(r => r.ok ? r.json() : Promise.reject(new Error(r.statusText)))
+          .then(data => {
+            state.short = apiResponseToState(data.short);
+            state.long = apiResponseToState(data.long);
+            applyStateAndRender();
+          })
+          .catch(() => {
+            state.short = buildResult(inp, SHORT);
+            state.long = buildResult(inp, LONG);
+            applyStateAndRender();
+          });
+      } else {
+        state.short = buildResult(inp, SHORT);
+        state.long = buildResult(inp, LONG);
+        applyStateAndRender();
+      }
+      if (document.getElementById('advanced-toggle').checked) advancedUpdate();
+    }
+
+    document.getElementById('form').addEventListener('input', update);
+    document.getElementById('form').addEventListener('change', update);
+
+    // --- Advanced panel ---
+    const advToggle = document.getElementById('advanced-toggle');
+    const advPanel = document.getElementById('advanced-panel');
+    advToggle.addEventListener('change', function() {
+      advPanel.classList.toggle('open', this.checked);
+      if (this.checked) advancedUpdate();
+    });
+
+    document.querySelectorAll('#advanced-panel input').forEach(el => {
+      el.addEventListener('input', () => { if (advToggle.checked) advancedUpdate(); });
+      el.addEventListener('change', () => { if (advToggle.checked) advancedUpdate(); });
+    });
+
+    function getAdvNum(id, def) {
+      const v = parseFloat(document.getElementById(id)?.value);
+      return isNaN(v) ? def : v;
+    }
+
+    function getAdvancedPayload() {
+      return {
+        period: parseFloat(document.getElementById('period')?.value) || 0,
+        eclipse: parseFloat(document.getElementById('eclipse')?.value) || 0,
+        power: parseFloat(document.getElementById('power')?.value) || 0,
+        voltage: parseFloat(document.getElementById('voltage')?.value) || 0,
+        pack_loss_pct: getAdvNum('adv-pack-loss-pct', 2),
+        divergence_pct: getAdvNum('adv-divergence-pct', 3),
+        redundancy_n: getAdvNum('adv-redundancy', 1),
+        ageing_pct: getAdvNum('adv-ageing-pct', 10),
+        temp_pct: getAdvNum('adv-temp-pct', 5),
+        anomaly_wh: getAdvNum('adv-anomaly-wh', 20),
+        cell_ah: getAdvNum('adv-cell-ah', 5),
+        series: Math.max(1, Math.round(getAdvNum('adv-series', 8))),
+        parallel: Math.max(1, Math.round(getAdvNum('adv-parallel', 1))),
+        eol_factor: getAdvNum('adv-eol-factor', 0.8),
+        eocv_per_cell_v: getAdvNum('adv-eocv-cell', 4.2),
+        eodv_per_cell_v: getAdvNum('adv-eodv-cell', 3.0),
+        c_rate_charge: getAdvNum('adv-c-rate-charge', 0.5),
+        c_rate_discharge: getAdvNum('adv-c-rate-discharge', 2)
+      };
+    }
+
+    function renderAdvancedPanels(data) {
+      const s = data.sizing_summary;
+      const sizingEl = document.getElementById('sizing-summary-dl');
+      sizingEl.innerHTML = `
+        <dt>Base capacity (Wh)</dt><dd>${s.base_capacity_Wh.toFixed(2)}</dd>
+        <dt>After pack loss I²R (%)</dt><dd>${s.after_pack_loss_Wh.toFixed(2)} Wh</dd>
+        <dt>After cell divergence (%)</dt><dd>${s.after_divergence_Wh.toFixed(2)} Wh</dd>
+        <dt>After redundancy (N+1)</dt><dd>${s.after_redundancy_Wh.toFixed(2)} Wh</dd>
+        <dt>After ageing derate (%)</dt><dd>${s.after_ageing_Wh.toFixed(2)} Wh</dd>
+        <dt>After temp derate (%)</dt><dd>${s.after_temp_Wh.toFixed(2)} Wh</dd>
+        <dt>Anomaly/SAFE reserve (Wh)</dt><dd>${s.anomaly_reserve_Wh}</dd>
+        <dt>Effective capacity</dt><dd><strong>${s.effective_capacity_Wh.toFixed(2)} Wh</strong> (${s.effective_capacity_Ah.toFixed(2)} Ah)</dd>
+      `;
+
+      const c = data.cell_level;
+      const cellEl = document.getElementById('cell-level-dl');
+      const limits = data.charge_discharge_limits;
+      cellEl.innerHTML = `
+        <dt>Cell count</dt><dd>${c.total_cells} (${c.string_config})</dd>
+        <dt>String configuration</dt><dd>${c.string_config}</dd>
+        <dt>Pack capacity (Ah, EOL)</dt><dd>${c.pack_capacity_Ah} Ah</dd>
+        <dt>Max charge current (BMS limit)</dt><dd>${limits.max_charge_current_A} A</dd>
+        <dt>Max discharge current (BMS limit)</dt><dd>${limits.max_discharge_current_A} A</dd>
+      `;
+
+      const limEl = document.getElementById('charge-discharge-dl');
+      limEl.innerHTML = `
+        <dt>Max charge current</dt><dd>${limits.max_charge_current_A} A</dd>
+        <dt>Max discharge current</dt><dd>${limits.max_discharge_current_A} A</dd>
+        <dt>EOCV (pack)</dt><dd>${limits.eocv_pack_V} V</dd>
+        <dt>EODV (pack)</dt><dd>${limits.eodv_pack_V} V</dd>
+      `;
+
+      document.getElementById('named-requirements').textContent = Array.isArray(data.named_requirements)
+        ? data.named_requirements.join('\n') : (data.named_requirements || '');
+    }
+
+    async function advancedUpdate() {
+      if (!advPanel.classList.contains('open')) return;
+
+      const payload = getAdvancedPayload();
+      const valid = [payload.period, payload.eclipse, payload.power, payload.voltage].every(n => !isNaN(n) && n > 0) && payload.voltage > 0;
+
+      const sizingEl = document.getElementById('sizing-summary-dl');
+      if (!valid) {
+        sizingEl.innerHTML = '<dd>Enter valid main inputs first.</dd>';
+        document.getElementById('cell-level-dl').innerHTML = '<dd>—</dd>';
+        document.getElementById('charge-discharge-dl').innerHTML = '<dd>—</dd>';
+        document.getElementById('named-requirements').textContent = '';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/advanced', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          renderAdvancedPanels(data);
+        } else {
+          const err = await res.json().catch(() => ({}));
+          sizingEl.innerHTML = '<dd class="error">' + (err.error || 'Request failed') + '</dd>';
+          document.getElementById('cell-level-dl').innerHTML = '<dd>—</dd>';
+          document.getElementById('charge-discharge-dl').innerHTML = '<dd>—</dd>';
+          document.getElementById('named-requirements').textContent = '';
+        }
+      } catch (_) {
+        sizingEl.innerHTML = '<dd class="error">Unable to reach server.</dd>';
+        document.getElementById('cell-level-dl').innerHTML = '<dd>—</dd>';
+        document.getElementById('charge-discharge-dl').innerHTML = '<dd>—</dd>';
+        document.getElementById('named-requirements').textContent = '';
+      }
+    }
+
+    document.querySelectorAll('.snippet-tabs button').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const caseId = this.dataset.case;
+        const format = this.dataset.format;
+        this.closest('.snippet-block').querySelectorAll('.snippet-tabs button').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const data = state[caseId];
+        const body = document.getElementById(caseId + '-snippet-body');
+        if (data) body.textContent = format === 'json' ? data.snippetJson : data.snippetMd;
+      });
+    });
+
+    document.querySelectorAll('.snippet-actions button').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const caseId = this.dataset.case;
+        const format = this.dataset.format;
+        const data = state[caseId];
+        if (!data) return;
+        const name = caseId === 'short' ? 'short_lived_high_power' : 'long_lived_low_power';
+        const ext = format === 'json' ? 'json' : 'md';
+        const content = format === 'json' ? data.snippetJson : data.snippetMd;
+        const mime = format === 'json' ? 'application/json' : 'text/markdown';
+        downloadFile(`${name}.${ext}`, mime, content);
+      });
+    });
+
+    update();
+  </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "case_name": "short_lived_high_power",
+  "case_description": "Short-lived, high-power (e.g. LEO, high DOD acceptable)",
+  "inputs": {
+    "orbital_period_min": 90.0,
+    "eclipse_duration_min": 35.0,
+    "average_payload_power_W": 200.0,
+    "nominal_battery_voltage_V": 28.0
+  },
+  "required_usable_capacity_Wh": 128.33,
+  "required_usable_capacity_Ah": 4.58,
+  "average_c_rate_during_eclipse": 1.558,
+  "soc_operating_window": {
+    "min": 0.2,
+    "max": 1.0,
+    "min_end_of_eclipse": 0.2
+  },
+  "margin_and_reserve": {
+    "capacity_margin": 1.1,
+    "reserve_fraction": 0.1
+  },
+  "eclipse_energy_Wh": 116.67
+}

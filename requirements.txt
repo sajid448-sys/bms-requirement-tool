@@ -1,0 +1,2 @@
+# For Web UI (server.py) and Docker. CLI (bms_calculator.py) needs only Python stdlib.
+flask>=3.0

@@ -1,0 +1,23 @@
+{
+  "case_name": "long_lived_low_power",
+  "case_description": "Long-lived, low-power (e.g. GEO, conservative for life)",
+  "inputs": {
+    "orbital_period_min": 90.0,
+    "eclipse_duration_min": 35.0,
+    "average_payload_power_W": 200.0,
+    "nominal_battery_voltage_V": 28.0
+  },
+  "required_usable_capacity_Wh": 140.0,
+  "required_usable_capacity_Ah": 5.0,
+  "average_c_rate_during_eclipse": 1.429,
+  "soc_operating_window": {
+    "min": 0.3,
+    "max": 0.9,
+    "min_end_of_eclipse": 0.3
+  },
+  "margin_and_reserve": {
+    "capacity_margin": 1.2,
+    "reserve_fraction": 0.25
+  },
+  "eclipse_energy_Wh": 116.67
+}

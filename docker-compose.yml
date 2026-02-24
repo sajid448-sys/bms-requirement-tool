@@ -1,0 +1,7 @@
+# Run from bms_requirement_tool directory: docker compose build && docker compose up
+services:
+  app:
+    build: .
+    container_name: bms-calculator
+    ports:
+      - "5000:5000"
